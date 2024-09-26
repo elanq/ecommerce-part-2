@@ -1,5 +1,6 @@
 package com.fastcampus.ecommerce;
 
+import com.fastcampus.ecommerce.repository.ProductRepository;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
