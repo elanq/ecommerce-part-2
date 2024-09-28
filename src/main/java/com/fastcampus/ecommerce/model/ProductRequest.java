@@ -1,5 +1,6 @@
 package com.fastcampus.ecommerce.model;
 
+import com.fastcampus.ecommerce.entity.User;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -13,13 +14,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 @Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductRequest {
+
   @NotBlank(message = "Nama produk tidak boleh kosong")
   @Size(min = 3, max = 20, message = "Nama produk harus antara 30 dan 20 karakter")
   private String name;
@@ -43,4 +44,6 @@ public class ProductRequest {
 
   @NotEmpty(message = "Harus ada satu kategori yang dipilih")
   private List<Long> categoryIds;
+
+  private User user;
 }

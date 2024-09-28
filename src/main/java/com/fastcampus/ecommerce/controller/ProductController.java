@@ -1,17 +1,14 @@
 package com.fastcampus.ecommerce.controller;
 
-import com.fastcampus.ecommerce.entity.Product;
 import com.fastcampus.ecommerce.model.PaginatedProductResponse;
 import com.fastcampus.ecommerce.model.ProductRequest;
 import com.fastcampus.ecommerce.model.ProductResponse;
-import com.fastcampus.ecommerce.repository.ProductRepository;
+import com.fastcampus.ecommerce.model.UserInfo;
 import com.fastcampus.ecommerce.service.ProductService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +17,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -49,14 +48,14 @@ public class ProductController {
   // localhost:3000/products?page=0&size=10
   @GetMapping("")
   public ResponseEntity<PaginatedProductResponse> getAllProduct(
-     @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size,
-      @RequestParam(defaultValue = "product_id,asc") String[] sort ,
+      @RequestParam(defaultValue = "product_id,asc") String[] sort,
       @RequestParam(required = false) String name
   ) {
-    List< Sort.Order> orders = new ArrayList<>();
+    List<Sort.Order> orders = new ArrayList<>();
     if (sort[0].contains(",")) {
-      for (String sortOrder: sort) {
+      for (String sortOrder : sort) {
         // ?sort=product_id,asc&sort=price,desc
         String[] _sort = sortOrder.split(",");
         orders.add(new Sort.Order(getSortDirection(_sort[1]), _sort[0]));
@@ -78,7 +77,12 @@ public class ProductController {
 
   @PostMapping("")
   public ResponseEntity<ProductResponse> createProduct(@RequestBody @Valid ProductRequest request) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    UserInfo userInfo = (UserInfo) authentication.getPrincipal();
+
+    request.setUser(userInfo.getUser());
     ProductResponse response = productService.create(request);
+
     return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(response);
@@ -103,11 +107,11 @@ public class ProductController {
   }
 
   private Sort.Direction getSortDirection(String direction) {
-   if (direction.equals("asc")) {
-     return Direction.ASC;
+    if (direction.equals("asc")) {
+      return Direction.ASC;
     } else if (direction.equals("desc")) {
-     return Direction.DESC;
-   }
-   return Direction.ASC;
+      return Direction.DESC;
+    }
+    return Direction.ASC;
   }
 }

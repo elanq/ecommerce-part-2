@@ -12,9 +12,7 @@ import com.fastcampus.ecommerce.model.ProductResponse;
 import com.fastcampus.ecommerce.repository.CategoryRepository;
 import com.fastcampus.ecommerce.repository.ProductCategoryRepository;
 import com.fastcampus.ecommerce.repository.ProductRepository;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,7 +60,8 @@ public class ProductServiceImpl implements ProductService {
   @Override
   public ProductResponse findById(Long productId) {
     Product existingProduct = productRepository.findById(productId)
-        .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Product not found with id: " + productId));
     List<CategoryResponse> productCategories = getProductCategories(productId);
     return ProductResponse.fromProductAndCategories(existingProduct, productCategories);
   }
@@ -77,11 +76,12 @@ public class ProductServiceImpl implements ProductService {
         .description(productRequest.getDescription())
         .price(productRequest.getPrice())
         .stockQuantity(productRequest.getStockQuantity())
+        .userId(productRequest.getUser().getUserId())
         .weight(productRequest.getWeight())
         .build();
 
     Product createdProduct = productRepository.save(product);
-    List< ProductCategory> productCategories = categories.stream()
+    List<ProductCategory> productCategories = categories.stream()
         .map(category -> {
           ProductCategory productCategory = ProductCategory.builder().build();
           ProductCategoryId productCategoryId = new ProductCategoryId();
@@ -94,7 +94,7 @@ public class ProductServiceImpl implements ProductService {
 
     productCategoryRepository.saveAll(productCategories);
 
-    List< CategoryResponse> categoryResponseList = categories.stream().map(
+    List<CategoryResponse> categoryResponseList = categories.stream().map(
             CategoryResponse::fromCategory)
         .toList();
 
@@ -105,7 +105,8 @@ public class ProductServiceImpl implements ProductService {
   @Transactional
   public ProductResponse update(Long productId, ProductRequest productRequest) {
     Product existingProduct = productRepository.findById(productId)
-        .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Product not found with id: " + productId));
 
     List<Category> categories = getCategoriesByIds(productRequest.getCategoryIds());
 
@@ -117,10 +118,11 @@ public class ProductServiceImpl implements ProductService {
     existingProduct.setWeight(productRequest.getWeight());
     productRepository.save(existingProduct);
 
-    List<ProductCategory> existingProductCategories = productCategoryRepository.findCategoriesByProductId(productId);
+    List<ProductCategory> existingProductCategories = productCategoryRepository.findCategoriesByProductId(
+        productId);
     productCategoryRepository.deleteAll(existingProductCategories);
 
-    List< ProductCategory> productCategories = categories.stream()
+    List<ProductCategory> productCategories = categories.stream()
         .map(category -> {
           ProductCategory productCategory = ProductCategory.builder().build();
           ProductCategoryId productCategoryId = new ProductCategoryId();
@@ -133,7 +135,7 @@ public class ProductServiceImpl implements ProductService {
 
     productCategoryRepository.saveAll(productCategories);
 
-    List< CategoryResponse> categoryResponseList = categories.stream().map(
+    List<CategoryResponse> categoryResponseList = categories.stream().map(
             CategoryResponse::fromCategory)
         .toList();
 
@@ -144,8 +146,10 @@ public class ProductServiceImpl implements ProductService {
   @Transactional
   public void delete(Long productId) {
     Product existingProduct = productRepository.findById(productId)
-        .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + productId));
-    List<ProductCategory> productCategories = productCategoryRepository.findCategoriesByProductId(productId);
+        .orElseThrow(
+            () -> new ResourceNotFoundException("Product not found with id: " + productId));
+    List<ProductCategory> productCategories = productCategoryRepository.findCategoriesByProductId(
+        productId);
 
     productCategoryRepository.deleteAll(productCategories);
     productRepository.delete(existingProduct);
@@ -166,12 +170,14 @@ public class ProductServiceImpl implements ProductService {
   private List<Category> getCategoriesByIds(List<Long> categoryIds) {
     return categoryIds.stream()
         .map(categoryId -> categoryRepository.findById(categoryId)
-            .orElseThrow(() -> new ResourceNotFoundException("Category not found for id : "+categoryId)))
+            .orElseThrow(
+                () -> new ResourceNotFoundException("Category not found for id : " + categoryId)))
         .toList();
   }
 
   private List<CategoryResponse> getProductCategories(Long productId) {
-    List<ProductCategory> productCategories = productCategoryRepository.findCategoriesByProductId(productId);
+    List<ProductCategory> productCategories = productCategoryRepository.findCategoriesByProductId(
+        productId);
     List<Long> categoryIds = productCategories.stream()
         .map(productCategory -> productCategory.getId().getCategoryId())
         .toList();
