@@ -2,6 +2,7 @@ package com.fastcampus.ecommerce.config.middleware;
 
 import com.fastcampus.ecommerce.common.errors.BadRequestException;
 import com.fastcampus.ecommerce.common.errors.EmailAlreadyExistsException;
+import com.fastcampus.ecommerce.common.errors.ForbiddenAccessException;
 import com.fastcampus.ecommerce.common.errors.InvalidPasswordException;
 import com.fastcampus.ecommerce.common.errors.ResourceNotFoundException;
 import com.fastcampus.ecommerce.common.errors.RoleNotFoundException;
@@ -127,6 +128,17 @@ public class GenericExceptionHandler {
       Exception exception) {
     return ErrorResponse.builder()
         .code(HttpStatus.CONFLICT.value())
+        .message(exception.getMessage())
+        .timestamp(LocalDateTime.now())
+        .build();
+  }
+
+  @ExceptionHandler(ForbiddenAccessException.class)
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  public @ResponseBody ErrorResponse handleForbiddenException(HttpServletRequest req,
+      Exception exception) {
+    return ErrorResponse.builder()
+        .code(HttpStatus.FORBIDDEN.value())
         .message(exception.getMessage())
         .timestamp(LocalDateTime.now())
         .build();

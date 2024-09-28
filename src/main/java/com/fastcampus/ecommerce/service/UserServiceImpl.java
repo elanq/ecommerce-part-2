@@ -131,7 +131,7 @@ public class UserServiceImpl implements UserService {
     User user = userRepository.findById(id)
         .orElseThrow(() -> new UserNotFoundException("User not found with id " + id));
 
-    userRoleRepository.deleteByUserId(id);
+    userRoleRepository.deleteByIdUserId(id);
 
     userRepository.delete(user);
   }
