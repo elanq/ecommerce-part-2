@@ -23,6 +23,7 @@ public class UserAddressResponse implements Serializable {
   private String state;
   private String postalCode;
   private String country;
+  private boolean defaultAddress;
 
   public static UserAddressResponse fromUserAddress(UserAddress userAddress) {
     return UserAddressResponse.builder()
@@ -33,6 +34,7 @@ public class UserAddressResponse implements Serializable {
         .state(userAddress.getState())
         .postalCode(userAddress.getPostalCode())
         .country(userAddress.getCountry())
+        .defaultAddress(userAddress.getIsDefault())
         .build();
   }
 }

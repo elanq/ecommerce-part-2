@@ -2,6 +2,7 @@ package com.fastcampus.ecommerce.model;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +18,7 @@ public class ShippingOrderRequest {
   private Long orderId;
   private Address fromAddress;
   private Address toAddress;
-  private int totalWeightInGrams;
+  private BigDecimal totalWeightInGrams;
 
   @Data
   @Builder

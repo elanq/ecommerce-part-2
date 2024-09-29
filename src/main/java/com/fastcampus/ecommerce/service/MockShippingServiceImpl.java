@@ -57,10 +57,15 @@ public class MockShippingServiceImpl implements
     order.setAwbNumber(awbNumber);
     orderRepository.save(order);
 
+    BigDecimal shippingFee = BASE_RATE.add(
+            request.getTotalWeightInGrams().divide(BigDecimal.valueOf(1000)).multiply(RATE_PER_KG))
+        .setScale(2, RoundingMode.HALF_UP);
+
     String estimatedDeliveryTime = "3 - 5 hari kerja";
 
     return ShippingOrderResponse.builder()
         .awbNumber(awbNumber)
+        .shippingFee(shippingFee)
         .estimatedDeliveryTime(estimatedDeliveryTime)
         .build();
   }

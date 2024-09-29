@@ -73,6 +73,7 @@ public class UserAddressServiceImpl implements
 
     UserAddress updatedAddress = UserAddress.builder()
         .userAddressId(existingAddress.getUserAddressId())
+        .userId(existingAddress.getUserId())
         .addressName(request.getAddressName())
         .streetAddress(request.getStreetAddress())
         .city(request.getCity())
