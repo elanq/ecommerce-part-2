@@ -3,12 +3,13 @@ package com.fastcampus.ecommerce.service;
 import com.fastcampus.ecommerce.entity.Order;
 import com.fastcampus.ecommerce.model.CheckoutRequest;
 import com.fastcampus.ecommerce.model.OrderItemResponse;
+import com.fastcampus.ecommerce.model.OrderResponse;
 import java.util.List;
 import java.util.Optional;
 
 public interface OrderService {
 
-  Order checkout(CheckoutRequest checkoutRequest);
+  OrderResponse checkout(CheckoutRequest checkoutRequest);
 
   Optional<Order> findOrderById(Long orderId);
 

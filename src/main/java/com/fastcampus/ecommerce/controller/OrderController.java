@@ -38,8 +38,7 @@ public class OrderController {
     UserInfo userInfo = (UserInfo) authentication.getPrincipal();
 
     checkoutRequest.setUserId(userInfo.getUser().getUserId());
-    Order order = orderService.checkout(checkoutRequest);
-    OrderResponse orderResponse = OrderResponse.fromOrder(order);
+    OrderResponse orderResponse = orderService.checkout(checkoutRequest);
     return ResponseEntity.ok(orderResponse);
   }
 

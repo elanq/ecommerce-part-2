@@ -8,6 +8,8 @@ import com.fastcampus.ecommerce.entity.Product;
 import com.fastcampus.ecommerce.entity.UserAddress;
 import com.fastcampus.ecommerce.model.CheckoutRequest;
 import com.fastcampus.ecommerce.model.OrderItemResponse;
+import com.fastcampus.ecommerce.model.OrderResponse;
+import com.fastcampus.ecommerce.model.PaymentResponse;
 import com.fastcampus.ecommerce.model.ShippingRateRequest;
 import com.fastcampus.ecommerce.model.ShippingRateResponse;
 import com.fastcampus.ecommerce.repository.CartItemRepository;
@@ -39,12 +41,13 @@ public class OrderServiceImpl implements OrderService {
   private final UserAddressRepository userAddressRepository;
   private final ProductRepository productRepository;
   private final ShippingService shippingService;
+  private final PaymentService paymentService;
 
   private final BigDecimal TAX_RATE = BigDecimal.valueOf(0.03);
 
   @Override
   @Transactional
-  public Order checkout(CheckoutRequest checkoutRequest) {
+  public OrderResponse checkout(CheckoutRequest checkoutRequest) {
     List<CartItem> selectedItems = cartItemRepository.findAllById(
         checkoutRequest.getSelectedCartItemIds());
     if (selectedItems.isEmpty()) {
@@ -125,7 +128,31 @@ public class OrderServiceImpl implements OrderService {
     savedOrder.setTaxFee(taxFee);
     savedOrder.setTotalAmount(totalAmount);
 
-    return orderRepository.save(savedOrder);
+    orderRepository.save(savedOrder);
+
+    // interact with xendit api
+    // generate payment url
+    String paymentUrl;
+
+    try {
+      PaymentResponse paymentResponse = paymentService.create(savedOrder);
+      savedOrder.setXenditInvoiceId(paymentResponse.getXenditInvoiceId());
+      savedOrder.setXenditPaymentStatus(paymentResponse.getXenditInvoiceStatus());
+      paymentUrl = paymentResponse.getXenditPaymentUrl();
+
+      orderRepository.save(savedOrder);
+    } catch (Exception ex) {
+      log.error("Payment creation for order: " + savedOrder.getOrderId() + " is failed. Reason:"
+          + ex.getMessage());
+      savedOrder.setStatus("PAYMENT_FAILED");
+
+      orderRepository.save(savedOrder);
+      return OrderResponse.fromOrder(savedOrder);
+    }
+
+    OrderResponse orderResponse = OrderResponse.fromOrder(savedOrder);
+    orderResponse.setPaymentUrl(paymentUrl);
+    return orderResponse;
   }
 
   @Override
