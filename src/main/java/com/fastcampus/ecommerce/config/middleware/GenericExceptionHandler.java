@@ -74,7 +74,8 @@ public class GenericExceptionHandler {
         exception instanceof SignatureException ||
         exception instanceof ExpiredJwtException ||
         exception instanceof AuthenticationException ||
-        exception instanceof InsufficientAuthenticationException) {
+        exception instanceof InsufficientAuthenticationException
+    ) {
 
       resp.setStatus(HttpServletResponse.SC_FORBIDDEN);
       return ErrorResponse.builder()

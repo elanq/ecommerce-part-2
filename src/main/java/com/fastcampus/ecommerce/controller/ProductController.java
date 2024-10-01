@@ -1,5 +1,6 @@
 package com.fastcampus.ecommerce.controller;
 
+import com.fastcampus.ecommerce.common.PageUtil;
 import com.fastcampus.ecommerce.model.PaginatedProductResponse;
 import com.fastcampus.ecommerce.model.ProductRequest;
 import com.fastcampus.ecommerce.model.ProductResponse;
@@ -7,14 +8,12 @@ import com.fastcampus.ecommerce.model.UserInfo;
 import com.fastcampus.ecommerce.service.ProductService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -53,16 +52,7 @@ public class ProductController {
       @RequestParam(defaultValue = "product_id,asc") String[] sort,
       @RequestParam(required = false) String name
   ) {
-    List<Sort.Order> orders = new ArrayList<>();
-    if (sort[0].contains(",")) {
-      for (String sortOrder : sort) {
-        // ?sort=product_id,asc&sort=price,desc
-        String[] _sort = sortOrder.split(",");
-        orders.add(new Sort.Order(getSortDirection(_sort[1]), _sort[0]));
-      }
-    } else {
-      orders.add(new Sort.Order(getSortDirection(sort[1]), sort[0]));
-    }
+    List<Sort.Order> orders = PageUtil.parseSortOrderRequest(sort);
     Pageable pageable = PageRequest.of(page, size, Sort.by(orders));
     Page<ProductResponse> productResponses;
 
@@ -106,12 +96,5 @@ public class ProductController {
 
   }
 
-  private Sort.Direction getSortDirection(String direction) {
-    if (direction.equals("asc")) {
-      return Direction.ASC;
-    } else if (direction.equals("desc")) {
-      return Direction.DESC;
-    }
-    return Direction.ASC;
-  }
+
 }

@@ -1,15 +1,22 @@
 package com.fastcampus.ecommerce.controller;
 
-import com.fastcampus.ecommerce.entity.Order;
+import com.fastcampus.ecommerce.common.PageUtil;
+import com.fastcampus.ecommerce.common.errors.BadRequestException;
 import com.fastcampus.ecommerce.model.CheckoutRequest;
 import com.fastcampus.ecommerce.model.OrderItemResponse;
 import com.fastcampus.ecommerce.model.OrderResponse;
+import com.fastcampus.ecommerce.model.OrderStatus;
+import com.fastcampus.ecommerce.model.PaginatedOrderResponse;
 import com.fastcampus.ecommerce.model.UserInfo;
 import com.fastcampus.ecommerce.service.OrderService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -61,16 +68,23 @@ public class OrderController {
   }
 
   @GetMapping("")
-  public ResponseEntity<List<OrderResponse>> findOrdersByUserId() {
+  public ResponseEntity<PaginatedOrderResponse> findOrdersByUserId(
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "order_id,desc") String[] sort
+  ) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     UserInfo userInfo = (UserInfo) authentication.getPrincipal();
 
-    List<Order> userOrders = orderService.findOrdersByUserId(userInfo.getUser().getUserId());
-    List<OrderResponse> orderResponses = userOrders.stream()
-        .map(OrderResponse::fromOrder)
-        .toList();
+    List<Sort.Order> sortOrder = PageUtil.parseSortOrderRequest(sort);
 
-    return ResponseEntity.ok(orderResponses);
+    Pageable pageable = PageRequest.of(page, size, Sort.by(sortOrder));
+
+    Page<OrderResponse> userOrders = orderService.findOrdersByUserIdAndPageable(userInfo.getUser()
+        .getUserId(), pageable);
+
+    PaginatedOrderResponse paginatedOrderResponse = orderService.convertOrderPage(userOrders);
+    return ResponseEntity.ok(paginatedOrderResponse);
   }
 
   @PutMapping("/{orderId}/cancel")
@@ -90,7 +104,13 @@ public class OrderController {
   public ResponseEntity<Void> updateOrderStatus(@PathVariable Long orderId,
       @RequestParam String newStatus
   ) {
-    orderService.updateOrderStatus(orderId, newStatus);
+    OrderStatus status;
+    try {
+      status = OrderStatus.valueOf(newStatus);
+    } catch (IllegalArgumentException ex) {
+      throw new BadRequestException("Unrecognize status :" + newStatus);
+    }
+    orderService.updateOrderStatus(orderId, status);
     return ResponseEntity.ok().build();
   }
 
