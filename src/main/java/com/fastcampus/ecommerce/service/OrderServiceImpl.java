@@ -1,6 +1,7 @@
 package com.fastcampus.ecommerce.service;
 
 import com.fastcampus.ecommerce.common.OrderStateTransition;
+import com.fastcampus.ecommerce.common.errors.InventoryException;
 import com.fastcampus.ecommerce.common.errors.ResourceNotFoundException;
 import com.fastcampus.ecommerce.entity.CartItem;
 import com.fastcampus.ecommerce.entity.Order;
@@ -50,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
   private final ProductRepository productRepository;
   private final ShippingService shippingService;
   private final PaymentService paymentService;
+  private final InventoryService inventoryService;
 
   private final BigDecimal TAX_RATE = BigDecimal.valueOf(0.03);
 
@@ -66,6 +68,12 @@ public class OrderServiceImpl implements OrderService {
         .orElseThrow(() -> new ResourceNotFoundException(
             "Shipping address with id " + checkoutRequest.getUserAddressId() + " is not found"));
 
+    Map<Long, Integer> productQuantities = selectedItems.stream()
+        .collect(Collectors.toMap(CartItem::getProductId, CartItem::getQuantity));
+
+    if (!inventoryService.checkAndLockInventory(productQuantities)) {
+      throw new InventoryException("Insufficient inventory for one or more products");
+    }
     // request is validated
 
     Order newOrder = Order.builder()
@@ -149,6 +157,7 @@ public class OrderServiceImpl implements OrderService {
       paymentUrl = paymentResponse.getXenditPaymentUrl();
 
       orderRepository.save(savedOrder);
+      inventoryService.decreaseQuantity(productQuantities);
     } catch (Exception ex) {
       log.error("Payment creation for order: " + savedOrder.getOrderId() + " is failed. Reason:"
           + ex.getMessage());
@@ -160,6 +169,7 @@ public class OrderServiceImpl implements OrderService {
 
     OrderResponse orderResponse = OrderResponse.fromOrder(savedOrder);
     orderResponse.setPaymentUrl(paymentUrl);
+
     return orderResponse;
   }
 
@@ -196,10 +206,15 @@ public class OrderServiceImpl implements OrderService {
       throw new IllegalStateException("Only PENDING orders can be cancelled");
     }
 
+    List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
+    Map<Long, Integer> productQuantities = orderItems.stream()
+        .collect(Collectors.toMap(OrderItem::getProductId, OrderItem::getQuantity));
+
     order.setStatus(OrderStatus.CANCELLED);
     orderRepository.save(order);
     if (order.getStatus().equals(OrderStatus.CANCELLED)) {
       cancelXenditInvoice(order);
+      inventoryService.increaseQuantity(productQuantities);
     }
 
   }
@@ -263,6 +278,10 @@ public class OrderServiceImpl implements OrderService {
     orderRepository.save(order);
     if (newStatus.equals(OrderStatus.CANCELLED)) {
       cancelXenditInvoice(order);
+      List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
+      Map<Long, Integer> productQuantities = orderItems.stream()
+          .collect(Collectors.toMap(OrderItem::getProductId, OrderItem::getQuantity));
+      inventoryService.increaseQuantity(productQuantities);
     }
   }
 

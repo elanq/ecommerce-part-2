@@ -4,6 +4,7 @@ import com.fastcampus.ecommerce.common.errors.BadRequestException;
 import com.fastcampus.ecommerce.common.errors.EmailAlreadyExistsException;
 import com.fastcampus.ecommerce.common.errors.ForbiddenAccessException;
 import com.fastcampus.ecommerce.common.errors.InvalidPasswordException;
+import com.fastcampus.ecommerce.common.errors.InventoryException;
 import com.fastcampus.ecommerce.common.errors.ResourceNotFoundException;
 import com.fastcampus.ecommerce.common.errors.RoleNotFoundException;
 import com.fastcampus.ecommerce.common.errors.UserNotFoundException;
@@ -50,7 +51,7 @@ public class GenericExceptionHandler {
   }
 
 
-  @ExceptionHandler(BadRequestException.class)
+  @ExceptionHandler({BadRequestException.class, InventoryException.class})
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public @ResponseBody ErrorResponse handleBadRequestException(HttpServletRequest req,
       BadRequestException exception) {
