@@ -4,6 +4,7 @@ import com.fastcampus.ecommerce.entity.Product;
 import jakarta.persistence.LockModeType;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,4 +41,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
       SELECT p FROM Product p WHERE p.id = :id
       """)
   Optional<Product> findByIdWithPessimisticLock(@Param("id") Long id);
+
+  @Query(value = """
+      SELECT * FROM product
+      """, nativeQuery = true)
+  Stream<Product> streamAll();
 }

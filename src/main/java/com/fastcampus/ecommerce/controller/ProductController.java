@@ -4,8 +4,11 @@ import com.fastcampus.ecommerce.common.PageUtil;
 import com.fastcampus.ecommerce.model.PaginatedProductResponse;
 import com.fastcampus.ecommerce.model.ProductRequest;
 import com.fastcampus.ecommerce.model.ProductResponse;
+import com.fastcampus.ecommerce.model.ProductSearchRequest;
+import com.fastcampus.ecommerce.model.SearchResponse;
 import com.fastcampus.ecommerce.model.UserInfo;
 import com.fastcampus.ecommerce.service.ProductService;
+import com.fastcampus.ecommerce.service.SearchService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -35,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProductController {
 
   private final ProductService productService;
+  private final SearchService searchService;
 
   // localhost:3000/products/2
   @GetMapping("/{id}")
@@ -42,6 +46,13 @@ public class ProductController {
       @PathVariable(value = "id") Long productId) {
     ProductResponse productResponse = productService.findById(productId);
     return ResponseEntity.ok(productResponse);
+  }
+
+  @PostMapping("/search")
+  public ResponseEntity<SearchResponse<ProductResponse>> search(
+      @RequestBody ProductSearchRequest request) {
+    SearchResponse<ProductResponse> response = searchService.search(request);
+    return ResponseEntity.ok(response);
   }
 
   // localhost:3000/products?page=0&size=10

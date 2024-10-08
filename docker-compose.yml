@@ -39,6 +39,22 @@ services:
     volumes:
       - ecommerce_data:/var/lib/postgresql/data
       - ./init-sonarqube-db.sh:/docker-entrypoint-initdb.d/init-sonarqube-db.sh
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
   sonarqube:
     image: sonarqube:community
     ports:
@@ -53,9 +69,11 @@ services:
       - sonarqube_logs:/opt/sonarqube/logs
     depends_on:
       - db
+
 volumes:
   ecommerce_data:
   redis_data:
   sonarqube_data:
   sonarqube_extensions:
   sonarqube_logs:
+  elasticsearch_data:

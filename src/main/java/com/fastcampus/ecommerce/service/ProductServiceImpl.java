@@ -31,6 +31,7 @@ public class ProductServiceImpl implements ProductService {
   private final String PRODUCT_CACHE_KEY = "products:";
   private final CacheService cacheService;
   private final RateLimitingService rateLimitingService;
+  private final ProductIndexService productIndexService;
 
   @Override
   public List<ProductResponse> findAll() {
@@ -118,6 +119,7 @@ public class ProductServiceImpl implements ProductService {
     ProductResponse productResponse = ProductResponse.fromProductAndCategories(createdProduct,
         categoryResponseList);
     cacheService.put(cacheKey, productResponse);
+    productIndexService.reindexProduct(product);
     return productResponse;
   }
 
@@ -161,6 +163,7 @@ public class ProductServiceImpl implements ProductService {
 
     String cacheKey = PRODUCT_CACHE_KEY + productId;
     cacheService.evict(cacheKey);
+    productIndexService.reindexProduct(existingProduct);
     return ProductResponse.fromProductAndCategories(existingProduct, categoryResponseList);
   }
 
@@ -174,6 +177,7 @@ public class ProductServiceImpl implements ProductService {
         productId);
 
     productCategoryRepository.deleteAll(productCategories);
+    productIndexService.deleteProduct(existingProduct);
     productRepository.delete(existingProduct);
   }
 

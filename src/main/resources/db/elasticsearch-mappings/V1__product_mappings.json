@@ -1,0 +1,59 @@
+{
+  "mappings": {
+    "properties": {
+      "id": {
+        "type": "keyword"
+      },
+      "name": {
+        "type": "text",
+        "analyzer": "standard",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "price": {
+        "type": "double"
+      },
+      "weight": {
+        "type": "double"
+      },
+      "stockQuantity": {
+        "type": "integer"
+      },
+      "userId": {
+        "type": "long"
+      },
+      "categories": {
+        "type": "nested",
+        "properties": {
+          "categoryId": {
+            "type": "long"
+          },
+          "name": {
+            "type": "text",
+            "analyzer": "standard",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          }
+        }
+      },
+      "createdAt": {
+        "type": "date"
+      },
+      "updatedAt": {
+        "type": "date"
+      }
+    }
+  }
+}
