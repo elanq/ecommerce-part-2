@@ -6,6 +6,7 @@ import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkResponseItem;
 import com.fastcampus.ecommerce.entity.Category;
 import com.fastcampus.ecommerce.entity.Product;
+import com.fastcampus.ecommerce.model.ActivityType;
 import com.fastcampus.ecommerce.model.ProductDocument;
 import com.fastcampus.ecommerce.repository.CategoryRepository;
 import com.fastcampus.ecommerce.repository.ProductCategoryRepository;
@@ -32,6 +33,7 @@ public class BulkReindexServiceImpl implements
   private final CategoryRepository categoryRepository;
   private final ProductRepository productRepository;
   private final ProductIndexService productIndexService;
+  private final UserActivityService userActivityService;
 
   private static final int BATCH_SIZE = 100;
 
@@ -51,6 +53,12 @@ public class BulkReindexServiceImpl implements
         List<Category> categories = categoryRepository.findAllById(categoryIds);
         ProductDocument productDocument = ProductDocument.fromProductAndCategories(product,
             categories);
+        Long viewCount = userActivityService.getActivityCount(product.getProductId(),
+            ActivityType.VIEW);
+        Long purchaseCount = userActivityService.getActivityCount(product.getProductId(),
+            ActivityType.PURCHASE);
+        productDocument.setViewCount(viewCount);
+        productDocument.setPurchaseCount(purchaseCount);
         batch.add(productDocument);
 
         if (batch.size() >= BATCH_SIZE) {

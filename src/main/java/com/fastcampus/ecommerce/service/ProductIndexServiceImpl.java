@@ -3,12 +3,15 @@ package com.fastcampus.ecommerce.service;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.DeleteRequest;
 import co.elastic.clients.elasticsearch.core.IndexRequest;
+import co.elastic.clients.elasticsearch.core.UpdateRequest;
 import com.fastcampus.ecommerce.entity.Category;
 import com.fastcampus.ecommerce.entity.Product;
+import com.fastcampus.ecommerce.model.ActivityType;
 import com.fastcampus.ecommerce.model.ProductDocument;
 import io.github.resilience4j.retry.Retry;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -75,5 +78,27 @@ public class ProductIndexServiceImpl implements
   @Override
   public String indexName() {
     return INDEX_NAME;
+  }
+
+  @Override
+  public void reindexProductActivity(Long productId, ActivityType activityType, Long value) {
+    final String field = (activityType == ActivityType.VIEW) ? "viewCount" : "purchaseCount";
+
+    UpdateRequest<ProductDocument, Map<String, Object>> request = UpdateRequest.of(u ->
+        u.index(INDEX_NAME)
+            .id(productId.toString())
+            .doc(Map.of(field, value)));
+    try {
+      elasticsearchIndexRetrier.executeCallable(() -> {
+        elasticsearchClient.update(request, ProductDocument.class);
+        return null;
+      });
+    } catch (IOException ex) {
+      log.error("Error while updating product with id " + productId + " error: "
+          + ex.getMessage());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
   }
 }

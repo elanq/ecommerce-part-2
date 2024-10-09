@@ -24,6 +24,8 @@ public class ProductDocument {
   private BigDecimal weight;
   private Integer stockQuantity;
   private Long userId;
+  private Long purchaseCount;
+  private Long viewCount;
   private List<CategoryInfo> categories;
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
