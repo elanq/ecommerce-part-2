@@ -1,0 +1,96 @@
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "ngram_analyzer": {
+          "tokenizer": "ngram_tokenizer",
+          "filter": [
+            "lowercase"
+          ]
+        }
+      },
+      "tokenizer": {
+        "ngram_tokenizer": {
+          "type": "ngram",
+          "min_gram": 3,
+          "max_gram": 4,
+          "token_chars": [
+            "letter",
+            "digit"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": {
+        "type": "keyword"
+      },
+      "name": {
+        "type": "text",
+        "analyzer": "standard",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "nameSuggest": {
+        "type": "completion",
+        "analyzer": "standard"
+      },
+      "nameNgram": {
+        "type": "text",
+        "analyzer": "ngram_analyzer"
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "price": {
+        "type": "double"
+      },
+      "weight": {
+        "type": "double"
+      },
+      "stockQuantity": {
+        "type": "integer"
+      },
+      "userId": {
+        "type": "long"
+      },
+      "categories": {
+        "type": "nested",
+        "properties": {
+          "categoryId": {
+            "type": "long"
+          },
+          "name": {
+            "type": "text",
+            "analyzer": "standard",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          }
+        }
+      },
+      "purchaseCount": {
+        "type": "long"
+      },
+      "viewCount": {
+        "type": "long"
+      },
+      "createdAt": {
+        "type": "date"
+      },
+      "updatedAt": {
+        "type": "date"
+      }
+    }
+  }
+}

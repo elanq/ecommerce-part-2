@@ -8,6 +8,7 @@ import com.fastcampus.ecommerce.model.ProductResponse;
 import com.fastcampus.ecommerce.model.ProductSearchRequest;
 import com.fastcampus.ecommerce.model.SearchResponse;
 import com.fastcampus.ecommerce.model.UserInfo;
+import com.fastcampus.ecommerce.service.CachedProductAutocompleteService;
 import com.fastcampus.ecommerce.service.ProductService;
 import com.fastcampus.ecommerce.service.SearchService;
 import com.fastcampus.ecommerce.service.UserActivityService;
@@ -42,6 +43,7 @@ public class ProductController {
   private final ProductService productService;
   private final SearchService searchService;
   private final UserActivityService userActivityService;
+  private final CachedProductAutocompleteService productAutocompleteService;
 
   // localhost:3000/products/2
   @GetMapping("/{id}")
@@ -70,6 +72,39 @@ public class ProductController {
       @RequestBody ProductSearchRequest request) {
     SearchResponse<ProductResponse> response = searchService.search(request);
     return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/suggests")
+  public ResponseEntity<List<String>> suggestions(
+      @RequestParam("text") String text
+  ) {
+    List<String> suggestions = List.of();
+    if (text.length() > 2) {
+      suggestions = productAutocompleteService.combinedAutocomplete(text);
+    }
+    return ResponseEntity.ok(suggestions);
+  }
+
+  @GetMapping("/suggests/ngram")
+  public ResponseEntity<List<String>> ngramSuggestions(
+      @RequestParam("text") String text
+  ) {
+    List<String> suggestions = List.of();
+    if (text.length() > 2) {
+      suggestions = productAutocompleteService.getNgramAutocomplete(text);
+    }
+    return ResponseEntity.ok(suggestions);
+  }
+
+  @GetMapping("/suggests/fuzzy")
+  public ResponseEntity<List<String>> fuzzySuggestions(
+      @RequestParam("text") String text
+  ) {
+    List<String> suggestions = List.of();
+    if (text.length() > 2) {
+      suggestions = productAutocompleteService.getFuzzyAutocomplete(text);
+    }
+    return ResponseEntity.ok(suggestions);
   }
 
   @GetMapping("/recommendations")

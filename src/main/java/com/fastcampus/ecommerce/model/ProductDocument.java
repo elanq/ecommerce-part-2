@@ -27,6 +27,8 @@ public class ProductDocument {
   private Long purchaseCount;
   private Long viewCount;
   private List<CategoryInfo> categories;
+  private String nameSuggest;
+  private String nameNgram;
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private LocalDateTime createdAt;
@@ -53,6 +55,8 @@ public class ProductDocument {
         .weight(product.getWeight())
         .stockQuantity(product.getStockQuantity())
         .userId(product.getUserId())
+        .nameSuggest(product.getName())
+        .nameNgram(product.getName())
         .build();
     List<CategoryInfo> categoryInfos = categories.stream().map(category -> {
       CategoryInfo categoryInfo = new CategoryInfo();
